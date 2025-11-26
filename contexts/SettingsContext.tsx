@@ -1,6 +1,11 @@
+
 import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback } from 'react';
 import { AuthContext } from './AuthContext';
 import type { Language } from '../types';
+import zhTW from '../locales/zh-TW.json';
+import zhCN from '../locales/zh-CN.json';
+import en from '../locales/en.json';
+import ja from '../locales/ja.json';
 
 export interface Settings {
   apiKey: string;
@@ -36,11 +41,11 @@ const defaultSettings: Settings = {
   autoUpdateCacheOnLogin: true,
 };
 
-const defaultTranslations: Record<Language, any> = {
-    'zh-TW': {},
-    'zh-CN': {},
-    'en': {},
-    'ja': {},
+const staticTranslations: Record<Language, any> = {
+    'zh-TW': zhTW,
+    'zh-CN': zhCN,
+    'en': en,
+    'ja': ja,
 };
 
 const SYSTEM_KEYS: (keyof Settings)[] = [
@@ -85,35 +90,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   });
 
   const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [translations, setTranslations] = useState(defaultTranslations);
-
-  useEffect(() => {
-    const fetchTranslations = async () => {
-        try {
-            const [zhTWRes, zhCNRes, enRes, jaRes] = await Promise.all([
-                fetch('./locales/zh-TW.json'),
-                fetch('./locales/zh-CN.json'),
-                fetch('./locales/en.json'),
-                fetch('./locales/ja.json'),
-            ]);
-            
-            if (!zhTWRes.ok || !zhCNRes.ok || !enRes.ok || !jaRes.ok) {
-                throw new Error('One or more translation files failed to load.');
-            }
-
-            const loadedTranslations = {
-                'zh-TW': await zhTWRes.json(),
-                'zh-CN': await zhCNRes.json(),
-                'en': await enRes.json(),
-                'ja': await jaRes.json(),
-            };
-            setTranslations(loadedTranslations);
-        } catch (error) {
-            console.error("Failed to fetch translation files:", error);
-        }
-    };
-    fetchTranslations();
-  }, []);
+  // Initialize directly with imported JSONs
+  const [translations] = useState(staticTranslations);
 
   const getStorageKey = useCallback(() => {
     if (!currentUser) return null;
